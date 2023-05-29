@@ -12,6 +12,10 @@ import httpx
 from asdf.log_config import logger
 
 
+class FileDownloaderError(Exception):
+    pass
+
+
 class FileDownloader:
     def __init__(self, url: str, unzip: bool = True) -> None:
         self.url = url
@@ -20,12 +24,11 @@ class FileDownloader:
         self.unzip = unzip
 
     @property
-    def unzip_file_path(self) -> str | None:
+    def unzip_file_path(self) -> str:
         filenames = os.listdir(self.unzip_dir)
         if self.unzip_dir:
             return os.path.join(self.unzip_dir, filenames[0])
-        logger.error("self.unzipdir is None")
-        return None
+        raise FileDownloaderError("FileDownloader.unzip_dir is None")
 
     async def __aenter__(self) -> FileDownloader:
         logger.debug("Entering FileDownloader...")
@@ -72,8 +75,7 @@ class FileDownloader:
             logger.info("File %s was unzipped and stored at: %s", file_path, unzip_dir)
             return unzip_dir
         except zipfile.BadZipFile:
-            logger.error("Invalid ZIP file: %s", file_path)
-            return None
+            raise FileDownloaderError(f"Invalid ZIP file: {file_path}")
 
     @staticmethod
     async def _delete_file(file_path: str) -> None:
