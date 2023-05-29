@@ -4,9 +4,9 @@
 
 ### Local
 
-- [localhost:9000/1](http://localhost:9000/1/)
-- [localhost:9000/2](http://localhost:9000/2/)
-- [localhost:9000/3](http://localhost:9000/3/)
+- [localhost:8000/1](http://localhost:8000/1/)
+- [localhost:8000/2](http://localhost:8000/2/)
+- [localhost:8000/3](http://localhost:8000/3/)
 
 ### Prod
 
@@ -33,7 +33,7 @@ poetry shell
 Add dependency
 
 ```
-poetry add [--group dev] pypi_package
+poetry add [--group dev] <pypi_package>
 ```
 
 Run pytest
@@ -45,7 +45,7 @@ poetry run pytest --verbose --cov
 Run pylint
 
 ```
-poetry run pylint jjnt_api/ tests/
+poetry run pylint asdf/ tests/
 ```
 
 Run mypy
