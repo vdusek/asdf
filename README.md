@@ -2,7 +2,7 @@
 
 ## API endpoints
 
-### Local
+### Local/Dev
 
 - [localhost:8000/1](http://localhost:8000/1/)
 - [localhost:8000/2](http://localhost:8000/2/)

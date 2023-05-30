@@ -1,12 +1,6 @@
-from typing import Any, Generator
-from xml.etree.ElementTree import Element
-import xml.etree.ElementTree as ET
+from xml.etree import ElementTree as ET
 
 from asdf.log_config import logger
-
-
-class XmlReaderError(Exception):
-    pass
 
 
 class XmlReader:
@@ -16,24 +10,60 @@ class XmlReader:
     def get_num_of_items(self) -> int:
         tree = ET.parse(self.file_path)
         root = tree.getroot()
-        items = root.find("items")
-        logger.info("type(items): %s", type(items))
-        if isinstance(items, Element):
-            return len(items.findall("item"))
-        raise XmlReaderError("items is not instance of Element")
+        cnt = 0
 
-    def get_item_names(self) -> Generator[Any, Any, None]:
-        # tree = ET.parse(self.file_path)
-        # root = tree.getroot()
-        # items = root.find("items")
-        # for item in items.findall("item"):
-        #     yield str(item.attrib["name"])
+        # In case there would be more "items" nodes
+        for root_items in root.findall("items"):
+            logger.debug("type(root_items): %s", type(root_items))
+
+            if isinstance(root_items, ET.Element):
+                cnt += len(root_items.findall("item"))
+
+        return cnt
+
+    def get_item_names(self) -> list[str]:
+        result: list[str] = []
 
         with open(self.file_path, "rb") as file:
-            context = ET.iterparse(file, events=("start",))
-            for _, element in context:
+            for _, element in ET.iterparse(file, events=("start",)):
                 if element.tag == "item":
                     name = element.attrib.get("name")
+
                     if name is not None:
-                        yield name
+                        result.append(name)
                     element.clear()
+
+        return result
+
+    def get_spare_parts(self) -> dict[str, list[str]]:
+        """
+        items -> item -> parts -> part -> item
+        """
+        tree = ET.parse(self.file_path)
+        root = tree.getroot()
+        result: dict[str, list[str]] = {}
+
+        for root_items in root.findall("items"):
+            for root_items_item in root_items.findall("item"):
+                item_name = root_items_item.attrib.get("name")
+
+                if item_name is None:
+                    continue
+
+                for parts in root_items_item.findall("parts"):
+                    for part in parts.findall("part"):
+                        if part.attrib.get("name") != "Náhradní díly":
+                            continue
+
+                        for item in part.findall("item"):
+                            spare_part_name = item.attrib.get("name")
+
+                            if spare_part_name is None:
+                                continue
+
+                            try:
+                                result[item_name].append(spare_part_name)
+                            except KeyError:
+                                result[item_name] = [spare_part_name]
+
+        return result
