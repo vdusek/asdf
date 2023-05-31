@@ -10,6 +10,7 @@ from typing import Type
 import httpx
 
 from asdf.log_config import logger
+from asdf.utils import get_random_string
 
 
 class FileDownloaderError(Exception):
@@ -19,6 +20,7 @@ class FileDownloaderError(Exception):
 class FileDownloader:
     def __init__(self, url: str, unzip: bool = True) -> None:
         self.url = url
+        self.tmp_dir_path = os.path.join("/tmp", get_random_string(16))
         self.file_path: None | str = None
         self.unzip_dir: None | str = None
         self.unzip = unzip
@@ -32,6 +34,7 @@ class FileDownloader:
 
     async def __aenter__(self) -> FileDownloader:
         logger.debug("Entering FileDownloader...")
+        os.mkdir(self.tmp_dir_path)
         self.file_path = await self._download_file(self.url)
         if self.unzip:
             self.unzip_dir = await asyncio.to_thread(self._unzip_file, self.file_path)
@@ -48,12 +51,12 @@ class FileDownloader:
             await self._delete_file(self.file_path)
         if self.unzip_dir is not None:
             await self._delete_dir(self.unzip_dir)
+        await self._delete_dir(self.tmp_dir_path)
 
-    @staticmethod
-    async def _download_file(url: str) -> str:
+    async def _download_file(self, url: str) -> str:
         logger.debug("Downloading file: %s", url)
         file_name = url.split("/")[-1]
-        file_path = os.path.join("/tmp", file_name)
+        file_path = os.path.join(self.tmp_dir_path, file_name)
 
         async with httpx.AsyncClient() as client:
             response = await client.get(url)
@@ -64,11 +67,10 @@ class FileDownloader:
         logger.info("File %s was downloaded and stored to %s", url, file_path)
         return file_path
 
-    @staticmethod
-    def _unzip_file(file_path: str) -> str | None:
+    def _unzip_file(self, file_path: str) -> str | None:
         logger.debug("Unzipping file: %s", file_path)
         try:
-            unzip_dir = os.path.join("/tmp", "unzipped")
+            unzip_dir = os.path.join(self.tmp_dir_path, "unzipped")
             os.makedirs(unzip_dir, exist_ok=True)
             with zipfile.ZipFile(file_path, "r") as zip_ref:
                 zip_ref.extractall(unzip_dir)
