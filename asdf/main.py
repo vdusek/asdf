@@ -24,7 +24,6 @@ async def one() -> PrettyJsonResponse:
     logger.debug("Log message from one endpoint")
 
     async with FileDownloader(SRC_FILE_URL) as fd:
-        logger.debug("file_path: %s", fd.file_path)
         logger.debug("unzip_file_path: %s", fd.unzip_file_path)
 
         xml_reader = XmlReader(fd.unzip_file_path)
@@ -38,7 +37,6 @@ async def two() -> PrettyJsonResponse:
     logger.debug("Log message from two endpoint")
 
     async with FileDownloader(SRC_FILE_URL) as fd:
-        logger.debug("file_path: %s", fd.file_path)
         logger.debug("unzip_file_path: %s", fd.unzip_file_path)
 
         xml_reader = XmlReader(fd.unzip_file_path)
@@ -52,7 +50,6 @@ async def three() -> PrettyJsonResponse:
     logger.debug("Log message from three endpoint")
 
     async with FileDownloader(SRC_FILE_URL) as fd:
-        logger.debug("file_path: %s", fd.file_path)
         logger.debug("unzip_file_path: %s", fd.unzip_file_path)
 
         xml_reader = XmlReader(fd.unzip_file_path)

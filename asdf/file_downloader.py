@@ -21,23 +21,22 @@ class FileDownloader:
     def __init__(self, url: str, unzip: bool = True) -> None:
         self.url = url
         self.tmp_dir_path = os.path.join("/tmp", get_random_string(16))
-        self.file_path: None | str = None
-        self.unzip_dir: None | str = None
+        self.tmp_dir_unzip_path: None | str = None
         self.unzip = unzip
 
     @property
     def unzip_file_path(self) -> str:
-        filenames = os.listdir(self.unzip_dir)
-        if self.unzip_dir:
-            return os.path.join(self.unzip_dir, filenames[0])
-        raise FileDownloaderError("FileDownloader.unzip_dir is None")
+        filenames = os.listdir(self.tmp_dir_unzip_path)
+        if self.tmp_dir_unzip_path:
+            return os.path.join(self.tmp_dir_unzip_path, filenames[0])
+        raise FileDownloaderError("FileDownloader.tmp_dir_unzip_path is None")
 
     async def __aenter__(self) -> FileDownloader:
         logger.debug("Entering FileDownloader...")
         os.mkdir(self.tmp_dir_path)
-        self.file_path = await self._download_file(self.url)
+        file_path = await self._download_file(self.url)
         if self.unzip:
-            self.unzip_dir = await asyncio.to_thread(self._unzip_file, self.file_path)
+            self.tmp_dir_unzip_path = await asyncio.to_thread(self._unzip_file, file_path)
         return self
 
     async def __aexit__(
@@ -47,10 +46,6 @@ class FileDownloader:
         traceback: TracebackType,
     ) -> None:
         logger.debug("Exiting FileDownloader...")
-        if self.file_path is not None:
-            await self._delete_file(self.file_path)
-        if self.unzip_dir is not None:
-            await self._delete_dir(self.unzip_dir)
         await self._delete_dir(self.tmp_dir_path)
 
     async def _download_file(self, url: str) -> str:
