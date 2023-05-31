@@ -1,3 +1,4 @@
+from time import time
 from xml.etree import ElementTree as ET
 
 from asdf.log_config import logger
@@ -8,62 +9,102 @@ class XmlReader:
         self.file_path = file_path
 
     def get_num_of_items(self) -> int:
-        tree = ET.parse(self.file_path)
-        root = tree.getroot()
+        """
+        export_full -> items -> item -> ...
+        """
+        start_time = time()
+        context = ET.iterparse(self.file_path, events=("start", "end"))
+        _, root = next(context)
+        DESIDER_DEPTH = 2
+
         cnt = 0
+        depth = 0
+        for event, element in context:
+            if event == "start":
+                depth += 1
+                if element.tag == "item" and depth == DESIDER_DEPTH:
+                    cnt += 1
 
-        # In case there would be more "items" nodes
-        for root_items in root.findall("items"):
-            logger.debug("type(root_items): %s", type(root_items))
+            if event == "end":
+                depth -= 1
+                element.clear()
 
-            if isinstance(root_items, ET.Element):
-                cnt += len(root_items.findall("item"))
+                if element.tag == "items":
+                    root.clear()
+                    break
+
+            root.clear()
+
+        end_time = time()
+        elapsed_time = end_time - start_time
+        logger.info("[1] Processing time: %s seconds", elapsed_time)
 
         return cnt
 
     def get_item_names(self) -> list[str]:
+        """
+        export_full -> items -> item -> ...
+        """
+        start_time = time()
+        context = ET.iterparse(self.file_path, events=("start", "end"))
+        _, root = next(context)
+        DESIDER_DEPTH = 2
+
         result: list[str] = []
-
-        with open(self.file_path, "rb") as file:
-            for _, element in ET.iterparse(file, events=("start",)):
-                if element.tag == "item":
+        depth = 0
+        for event, element in context:
+            if event == "start":
+                depth += 1
+                if element.tag == "item" and depth == DESIDER_DEPTH:
                     name = element.attrib.get("name")
+                    result.append(name)
 
-                    if name is not None:
-                        result.append(name)
-                    element.clear()
+            if event == "end":
+                depth -= 1
+                element.clear()
+
+                if element.tag == "items":
+                    root.clear()
+                    break
+
+            root.clear()
+
+        end_time = time()
+        elapsed_time = end_time - start_time
+        logger.info("[2] Processing time: %s seconds", elapsed_time)
 
         return result
 
-    def get_spare_parts(self) -> dict[str, list[str]]:
+    def get_spare_parts(self) -> list[str]:
         """
-        items -> item -> parts -> part -> item
+        export_full -> items -> item -> parts -> part -> item
         """
-        tree = ET.parse(self.file_path)
-        root = tree.getroot()
-        result: dict[str, list[str]] = {}
+        start_time = time()
+        context = ET.iterparse(self.file_path, events=("start", "end"))
+        _, root = next(context)
+        DESIDER_DEPTH = 5
 
-        for root_items in root.findall("items"):
-            for root_items_item in root_items.findall("item"):
-                item_name = root_items_item.attrib.get("name")
+        result: list[str] = []
+        depth = 0
+        for event, element in context:
+            if event == "start":
+                depth += 1
+                if element.tag == "item" and depth == DESIDER_DEPTH:
+                    spare_part_name = element.attrib.get("name")
+                    result.append(spare_part_name)
 
-                if item_name is None:
-                    continue
+            if event == "end":
+                depth -= 1
+                element.clear()
 
-                for parts in root_items_item.findall("parts"):
-                    for part in parts.findall("part"):
-                        if part.attrib.get("name") != "Náhradní díly":
-                            continue
+                if element.tag == "items":
+                    root.clear()
+                    break
 
-                        for item in part.findall("item"):
-                            spare_part_name = item.attrib.get("name")
+            root.clear()
 
-                            if spare_part_name is None:
-                                continue
-
-                            try:
-                                result[item_name].append(spare_part_name)
-                            except KeyError:
-                                result[item_name] = [spare_part_name]
+        end_time = time()
+        elapsed_time = end_time - start_time
+        logger.info("[3] Processing time: %s seconds", elapsed_time)
 
         return result

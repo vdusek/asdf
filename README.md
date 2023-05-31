@@ -1,5 +1,17 @@
 # Asdf
 
+## Description
+
+- Download, unzip and process some large XML file (~100MB).
+    - I tried to be memory-efficient (don't read the entire file into memory).
+    - Ideally only one reading of the file.
+- Task 1
+    - Total time: ~1.4 sec (~0.85 sec XML processing)
+- Task 2
+    - Total time: ~1.55 sec (~0.85 sec XML processing)
+- Task 3
+    - Total time: ~1.7 sec (~0.85 sec XML processing)
+
 ## API endpoints
 
 ### Local/Dev
