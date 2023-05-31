@@ -4,15 +4,15 @@
 
 ### Local/Dev
 
-- [localhost:8000/1](http://localhost:8000/1/)
-- [localhost:8000/2](http://localhost:8000/2/)
-- [localhost:8000/3](http://localhost:8000/3/)
+- [localhost:8000/1](http://localhost:8000/1)
+- [localhost:8000/2](http://localhost:8000/2)
+- [localhost:8000/3](http://localhost:8000/3)
 
 ### Prod
 
-- [jakjsmenatom/retailys/1](https://jakjsmenatom/retailys/1/)
-- [jakjsmenatom/retailys/2](https://jakjsmenatom/retailys/2/)
-- [jakjsmenatom/retailys/3](https://jakjsmenatom/retailys/3/)
+- [vladadusek.cz/1](https://vladadusek.cz/1)
+- [vladadusek.cz/2](https://vladadusek.cz/2)
+- [vladadusek.cz/3](https://vladadusek.cz/3)
 
 ## Development setup
 
